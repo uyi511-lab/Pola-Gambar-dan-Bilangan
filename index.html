@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Math Runner – Petualangan Pola</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#16301f;font-family:Fredoka,'Trebuchet MS',system-ui,sans-serif;overflow:hidden;touch-action:none}
+body{display:grid;place-items:center}
+#g{position:relative;width:min(100vw,177.78vh);aspect-ratio:16/9;font-size:min(1.6vw,2.84vh);overflow:hidden;background:#000;color:#fff}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.hide{display:none!important}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5em;background:rgba(10,30,20,.78);text-align:center;padding:1.5em 3em}
+h1{font-size:3em;line-height:1;color:#ffd24a;text-shadow:0 .07em 0 #b5651d}
+h2{font-size:1.5em;color:#9be7a6}
+.ov p{font-size:.95em;line-height:1.35;max-width:46em}
+.btn{font:inherit;font-weight:700;font-size:1.25em;padding:.45em 1.2em;border:0;border-radius:1em;background:#ffd24a;color:#4a2c10;box-shadow:0 .2em 0 #b5651d;cursor:pointer}
+.btn.alt{background:#7fe08a;box-shadow:0 .2em 0 #2c8a3c}
+.btn:active{transform:translateY(.15em)}
+.row{display:flex;gap:1em;flex-wrap:wrap;justify-content:center}
+.hov{outline:.25em solid #fff;filter:brightness(1.15);transform:scale(1.05)}
+#cmsg{font-size:.9em;min-height:1.3em;color:#ffe9a8}
+#hud{position:absolute;top:1.4em;left:1.5%;right:1.5%;display:flex;justify-content:space-between;font-weight:700;font-size:1.15em;pointer-events:none}
+.pill{background:rgba(0,0,0,.5);padding:.15em .8em;border-radius:1em}
+#pb{position:absolute;top:0;left:0;height:.6em;background:#ffd24a;width:0}
+#vid{position:absolute;left:1.5%;top:12%;width:11em;border:.15em solid #fff;border-radius:.6em;transform:scaleX(-1);opacity:.9}
+#ctl{position:absolute;right:1.5%;bottom:2%;display:flex;gap:.5em}
+#ctl .btn{font-size:1.1em;padding:.3em .8em}
+#qp{position:absolute;left:29%;right:2%;top:11%;bottom:3%;background:rgba(255,248,225,.97);border:.2em solid #b5651d;border-radius:1.2em;padding:.8em 1.2em;display:flex;flex-direction:column;gap:.4em;color:#3b2410}
+#qn{font-weight:700;color:#2c8a3c;font-size:1em}
+#qt{font-size:1.3em;font-weight:700;line-height:1.2}
+#qpat{font-size:1.9em;font-weight:700;text-align:center;background:#fff;border-radius:.5em;padding:.15em;word-break:break-word;line-height:1.2}
+#qo{display:grid;grid-template-columns:1fr 1fr;gap:.6em;flex:1;min-height:6em}
+.opt{font:inherit;font-size:1.6em;font-weight:700;border:.12em solid #b5651d;border-radius:.7em;background:#ffe9a8;color:#3b2410;cursor:pointer}
+.opt.good{background:#7fe08a}.opt.bad{background:#ff8d8d}
+#qf{font-size:1.05em;line-height:1.25;min-height:3.2em;display:flex;gap:.8em;align-items:center}
+#qf .btn{font-size:1em;padding:.3em .9em;flex:none}
+#cur{position:fixed;width:30px;height:30px;border:4px solid #fff;background:rgba(255,70,70,.75);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:9}
+</style></head><body>
+<div id="g">
+<canvas id="cv"></canvas>
+<div id="pb"></div>
+<div id="hud" class="hide"><span class="pill" id="hs"></span><span class="pill" id="hp"></span><span class="pill" id="hc"></span><span class="pill" id="hl"></span></div>
+<video id="vid" class="hide" playsinline muted></video>
+<div id="ctl" class="hide"><button class="btn alt" id="bl">◀</button><button class="btn" id="bj">▲ Lompat</button><button class="btn" id="bd">▼ Tunduk</button><button class="btn alt" id="br">▶</button></div>
+<div id="qp" class="hide"><div id="qn"></div><div id="qt"></div><div id="qpat"></div><div id="qo"></div><div id="qf"></div></div>
+<div id="menu" class="ov">
+<h1>Math Runner</h1><h2>Petualangan Pola</h2>
+<p><b>Matematika · Kelas IV SD / Fase B · Kurikulum Merdeka · Level C2 (Memahami)</b></p>
+<p><b>Tujuan Pembelajaran:</b> Mengidentifikasi dan menentukan pola gambar serta pola bilangan membesar dan mengecil yang melibatkan penjumlahan dan pengurangan bilangan cacah sampai 100.</p>
+<p><b>Cara main:</b> Temanmu berlari terus. Hindari batu, kayu, dan lubang, lalu jawab 15 soal di gerbang! Telunjuk ke <b>atas</b> = lompat, ke <b>bawah</b> = tunduk, <b>kiri/kanan</b> = geser, <b>cubit</b> ibu jari + telunjuk = pilih jawaban. Tanpa kamera: tombol layar, geser jari, mouse, atau panah keyboard (↑ ↓ ← →, angka 1–4 untuk jawaban).</p>
+<div class="row"><button class="btn alt" id="bcam">📷 Aktifkan Kamera</button><button class="btn" id="bstart">▶ Mulai Game</button></div>
+<div id="cmsg"></div>
+</div>
+<div id="res" class="ov hide"></div>
+</div>
+<div id="cur" class="hide"></div>
+<script>
+const $=s=>document.querySelector(s),m=(v,n)=>((v%n)+n)%n,W=800,H=450,G=350,GD=1500;
+const cv=$('#cv'),ctx=cv.getContext('2d');cv.width=1600;cv.height=900;
+const Q=[
+{q:'Gambar apa yang muncul berikutnya?',p:'🔴 🔵 🔴 🔵 🔴 ❓',o:['🔵','🔴','🟢','🟡'],a:0,e:'Polanya berulang: merah, biru. Setelah merah, berikutnya biru.'},
+{q:'Warna apa yang muncul berikutnya?',p:'Merah, Kuning, Hijau, Merah, Kuning, ❓',o:['Hijau','Merah','Biru','Kuning'],a:0,e:'Polanya berulang: merah, kuning, hijau. Setelah kuning datang hijau.'},
+{q:'Bentuk apa yang muncul berikutnya?',p:'▲ ■ ● ▲ ■ ● ▲ ■ ❓',o:['●','▲','■','★'],a:0,e:'Polanya ▲ ■ ● berulang. Setelah ▲ ■ berikutnya ●.'},
+{q:'Gambar 1 ada 3 apel, gambar 2 ada 6 apel, gambar 3 ada 9 apel. Berapa apel pada gambar 4?',p:'🍎×3 → 🍎×6 → 🍎×9 → ❓',o:['12','10','11','15'],a:0,e:'Bertambah 3 setiap gambar. 9 + 3 = 12.'},
+{q:'Jumlah kristal makin sedikit: 20, 16, 12. Berapa kristal pada gambar berikutnya?',p:'💎×20 → 💎×16 → 💎×12 → ❓',o:['8','10','6','9'],a:0,e:'Berkurang 4 setiap gambar. 12 − 4 = 8.'},
+{q:'Lanjutkan pola bilangan membesar!',p:'3, 8, 13, 18, ❓',o:['23','21','22','28'],a:0,e:'Bertambah 5 setiap langkah. 18 + 5 = 23.'},
+{q:'Lanjutkan pola bilangan mengecil!',p:'90, 80, 70, 60, ❓',o:['50','40','55','65'],a:0,e:'Berkurang 10 setiap langkah. 60 − 10 = 50.'},
+{q:'Pola bertambah 2. Bilangan berikutnya?',p:'4, 6, 8, 10, ❓',o:['12','11','14','13'],a:0,e:'Ditambah 2 setiap langkah. 10 + 2 = 12.'},
+{q:'Pola bertambah 5. Bilangan berikutnya?',p:'15, 20, 25, 30, ❓',o:['35','32','40','45'],a:0,e:'Ditambah 5 setiap langkah. 30 + 5 = 35.'},
+{q:'Pola bertambah 10. Bilangan berikutnya?',p:'24, 34, 44, 54, ❓',o:['64','74','58','60'],a:0,e:'Ditambah 10 setiap langkah. 54 + 10 = 64.'},
+{q:'Pola berkurang 2. Bilangan berikutnya?',p:'30, 28, 26, 24, ❓',o:['22','20','23','26'],a:0,e:'Dikurangi 2 setiap langkah. 24 − 2 = 22.'},
+{q:'Pola berkurang 5. Bilangan berikutnya?',p:'75, 70, 65, 60, ❓',o:['55','50','56','45'],a:0,e:'Dikurangi 5 setiap langkah. 60 − 5 = 55.'},
+{q:'Pola berkurang 10. Bilangan berikutnya?',p:'100, 90, 80, 70, ❓',o:['60','50','65','75'],a:0,e:'Dikurangi 10 setiap langkah. 70 − 10 = 60.'},
+{q:'Bilangan yang hilang adalah ...',p:'12, 22, 32, ❓, 52',o:['42','40','44','43'],a:0,e:'Ditambah 10 setiap langkah. 32 + 10 = 42.'},
+{q:'Tantangan akhir! Apa aturan pola ini?',p:'85, 80, 75, 70, 65',o:['Dikurangi 5','Ditambah 5','Dikurangi 10','Ditambah 10'],a:0,e:'Setiap bilangan lebih kecil 5 dari sebelumnya, jadi aturannya dikurangi 5.'}];
+const TH=[{s1:'#7fd4ff',s2:'#e6fbff',g:'#8a5a2b',gt:'#4cae4f',h:'#5cbf6a'},{s1:'#ff9e5e',s2:'#ffe9a8',g:'#7a5632',gt:'#b5873f',h:'#c98a4b'},{s1:'#2a1b4d',s2:'#5a3a8c',g:'#3a2d55',gt:'#6c52a3',h:'#3d2c66'}];
+let S='menu',st={},sh=0,last=0,AC;
+function reset(){st={qi:0,score:0,ok:0,bad:0,lives:3,coins:0,scroll:0,speed:0,obs:[],cn:[],gate:null,fin:null,run:0,nextObs:300,inv:0,hy:0,vy:0,duck:0,hx:150,tx:150,t:0,ph:0,hurt:0,parts:[],winT:0,ans:false,moved:false}}
+reset();
+function snd(f,d=.15,ty='sine',v=.12){try{AC=AC||new(window.AudioContext||webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+function burst(x,y,c,n){for(let i=0;i<n;i++)st.parts.push({x,y,vx:(Math.random()-.5)*7,vy:-Math.random()*7-1,l:55,c})}
+/* ---------- Game flow ---------- */
+function startGame(){reset();S='run';st.speed=3;$('#menu').classList.add('hide');$('#res').classList.add('hide');$('#hud').classList.remove('hide');snd(520,.15);}
+function toMenu(){reset();S='menu';$('#res').classList.add('hide');$('#qp').classList.add('hide');$('#hud').classList.add('hide');$('#menu').classList.remove('hide')}
+function endGame(w){S='end';$('#qp').classList.add('hide');const n=st.ok+st.bad,acc=n?Math.round(st.ok/n*100):0;
+$('#res').innerHTML=`<h1>${w?'Kamu Berhasil! 🏆':'Petualangan Berakhir'}</h1><h2>${w?'Harta karun berhasil ditemukan!':'Nyawamu habis. Ayo coba lagi!'}</h2><p style="font-size:1.4em">Skor: <b>${st.score}</b> · Koin: <b>${st.coins}</b><br>Jawaban benar: <b>${st.ok}</b> · Jawaban salah: <b>${st.bad}</b> · Akurasi: <b>${acc}%</b></p><div class="row"><button class="btn" id="bagain">↻ Main Lagi</button><button class="btn alt" id="bhome">⌂ Kembali ke Halaman Awal</button></div>`;
+$('#res').classList.remove('hide');$('#bagain').onclick=startGame;$('#bhome').onclick=toMenu;snd(w?880:200,.5,w?'triangle':'sawtooth')}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function showQ(){const q=Q[st.qi];st.ans=false;st.moved=false;$('#qn').textContent='Soal '+(st.qi+1)+' dari 15';$('#qt').textContent=q.q;$('#qpat').textContent=q.p;
+const box=$('#qo');box.innerHTML='';shuffle(q.o.map((t,i)=>({t,ok:i==q.a}))).forEach((o,i)=>{const b=document.createElement('button');b.className='opt';b.dataset.ok=o.ok?1:'';b.textContent='ABCD'[i]+'. '+o.t;b.onclick=()=>choose(b);box.appendChild(b)});
+$('#qf').innerHTML='';$('#qp').classList.remove('hide')}
+function choose(b){if(S!='question'||st.ans)return;st.ans=true;const ok=!!b.dataset.ok,q=Q[st.qi];
+document.querySelectorAll('.opt').forEach(x=>{if(x.dataset.ok)x.classList.add('good')});
+if(ok){st.score+=10;st.ok++;st.coins+=3;burst(st.hx,G-60,'#ffd24a',24);snd(700,.1);setTimeout(()=>snd(950,.2),110)}
+else{b.classList.add('bad');st.bad++;st.lives--;st.hurt=40;snd(150,.35,'sawtooth')}
+$('#qf').innerHTML=`<span><b>${ok?'Benar! +10 poin 🪙':'Belum tepat.'}</b> ${q.e}</span><button class="btn" id="nx">Lanjut</button>`;
+$('#nx').onclick=next;clearTimeout(st.timer);st.timer=setTimeout(next,5000)}
+function next(){clearTimeout(st.timer);if(S!='question'||!st.ans||st.moved)return;st.moved=true;$('#qp').classList.add('hide');
+if(st.lives<=0)return endGame(false);
+st.qi++;if(st.qi>=15){S='finish';st.fin={x:W+120}}else{S='run';st.run=0;st.nextObs=250}}
+function act(k){if(S!='run')return;
+if(k=='up'&&st.hy==0){st.vy=-13.2;snd(600,.12,'square',.05)}
+else if(k=='down'){if(st.hy<0)st.vy+=6;else st.duck=40}
+else if(k=='left')st.tx=Math.max(100,st.tx-70);
+else if(k=='right')st.tx=Math.min(290,st.tx+70)}
+/* ---------- Update ---------- */
+function spawn(){const k=['rock','log','pit','branch'][Math.random()*4|0],w={rock:46,log:64,pit:100,branch:80}[k],o={k,x:W+60,w,hit:false};st.obs.push(o);
+for(let i=0;i<3;i++)st.cn.push({x:o.x+w/2+(i-1)*30,y:k=='branch'?G-28:G-100-(i==1?26:0),ph:i});
+st.nextObs=290+Math.random()*220}
+function collide(o){const hb=G+st.hy,top=hb-(st.duck>0?58:98),l=st.hx-14,r=st.hx+14;
+if(o.k=='rock'||o.k=='log'){const h=o.k=='rock'?38:30;return o.x<r&&o.x+o.w>l+4&&hb>G-h+6}
+if(o.k=='pit')return st.hy>-6&&st.hx>o.x+8&&st.hx<o.x+o.w-8;
+return o.x<r&&o.x+o.w>l&&hb>G-110&&top<G-72}
+function ouch(){st.lives--;st.inv=90;st.hurt=40;sh=10;snd(130,.3,'sawtooth');if(st.lives<=0)endGame(false)}
+function update(dt){
+if(S=='menu'||S=='end'){st.scroll+=(S=='menu'?1.6:.4)*dt;st.ph+=.12*dt;return}
+let tgt=(S=='question'||S=='win')?0:(S=='finish'?5:4.2+Math.min(st.qi,14)*.13);
+st.speed+=(tgt-st.speed)*.06*dt;const d=st.speed*dt;st.scroll+=d;st.ph+=(.05+st.speed*.04)*dt;
+st.hx+=(st.tx-st.hx)*.15*dt;
+if(st.hy<0||st.vy<0){st.vy+=.72*dt;st.hy+=st.vy*dt;if(st.hy>=0){st.hy=0;st.vy=0}}
+st.duck-=dt;st.inv-=dt;st.hurt-=dt;
+st.obs.forEach(o=>o.x-=d);st.cn.forEach(c=>c.x-=d);st.obs=st.obs.filter(o=>o.x>-150);st.cn=st.cn.filter(c=>c.x>-30);
+if(st.gate){st.gate.x-=d;if(st.gate.x<-120)st.gate=null}
+if(S=='run'){
+st.run+=d;st.nextObs-=d;
+if(!st.gate&&st.run>=GD)st.gate={x:W+60,passed:false};
+else if(!st.gate&&st.nextObs<=0&&st.run<GD-520)spawn();
+for(const o of st.obs)if(!o.hit&&st.inv<=0&&collide(o)){o.hit=true;ouch()}
+st.cn=st.cn.filter(c=>{if(Math.abs(c.x-st.hx)<26&&Math.abs(c.y-(G+st.hy-45))<48){st.coins++;burst(c.x,c.y,'#ffd24a',5);snd(1000,.08,'triangle',.08);return false}return true});
+if(S=='run'&&st.gate&&!st.gate.passed&&st.gate.x<st.hx+80){st.gate.passed=true;st.obs=[];st.cn=[];S='question';showQ()}
+}
+if(S=='finish'){st.fin.x-=d;if(st.fin.x<st.hx-30){S='win';st.winT=0;snd(660,.4,'triangle')}}
+if(S=='win'){st.winT+=dt;if(st.hy==0)st.vy=-9;burst(Math.random()*W,0,['#ff5d73','#ffd24a','#5ad1ff','#7fe08a'][Math.random()*4|0],1);if(st.winT>170)endGame(true)}
+st.parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.25*dt;p.l-=dt});st.parts=st.parts.filter(p=>p.l>0);
+}
+/* ---------- Drawing ---------- */
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);ctx.fill()}
+function tree(x){ctx.fillStyle='#6b4423';ctx.fillRect(x-7,G-80,14,80);ctx.fillStyle='#2f9e44';[[0,-100,34],[-24,-84,26],[24,-84,26]].forEach(c=>{ctx.beginPath();ctx.arc(x+c[0],G+c[1],c[2],0,7);ctx.fill()})}
+function bg(){const t=Math.min(2,st.qi/5|0),th=TH[t],sc=st.scroll;
+const g=ctx.createLinearGradient(0,0,0,G);g.addColorStop(0,th.s1);g.addColorStop(1,th.s2);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ctx.fillStyle=t==2?'#e8e0ff':'#fff3a0';ctx.beginPath();ctx.arc(650,80,32,0,7);ctx.fill();
+ctx.fillStyle=th.h;ctx.beginPath();ctx.moveTo(0,G);for(let x=0;x<=W;x+=16)ctx.lineTo(x,G-80-28*Math.sin((x+sc*.12)/70)-12*Math.sin((x+sc*.12)/23));ctx.lineTo(W,G);ctx.fill();
+if(t==0)for(let i=0;i<7;i++)tree(m(i*140-sc*.45,980)-90);
+if(t==1){ctx.fillStyle='rgba(255,255,255,.85)';for(let i=0;i<4;i++){ctx.beginPath();ctx.ellipse(m(i*260-sc*.1,1100)-150,60+i%2*40,50,18,0,0,7);ctx.fill()}
+ctx.fillStyle='#5b3b1a';for(let x=-m(sc*.9,100);x<W;x+=100)ctx.fillRect(x,G-45,6,45);ctx.fillRect(0,G-42,W,5)}
+if(t==2)for(let i=0;i<9;i++){const x=m(i*110-sc*.3,990)-60;ctx.fillStyle='#4b3a73';ctx.beginPath();ctx.moveTo(x-25,0);ctx.lineTo(x+25,0);ctx.lineTo(x,70+i%3*30);ctx.fill();
+const y=m(i*190-sc*.8,1140)-100;ctx.fillStyle='#6df0ff';ctx.beginPath();ctx.moveTo(y-8,G);ctx.lineTo(y+8,G);ctx.lineTo(y,G-34);ctx.fill()}
+ctx.fillStyle=th.g;ctx.fillRect(0,G,W,H-G);ctx.fillStyle=th.gt;ctx.fillRect(0,G,W,14);
+ctx.fillStyle='rgba(0,0,0,.15)';for(let x=-m(sc,90);x<W;x+=90)ctx.fillRect(x,G+40,45,7);
+if(t==1){ctx.fillStyle='rgba(0,0,0,.25)';for(let x=-m(sc,50);x<W;x+=50)ctx.fillRect(x,G,3,40);ctx.fillStyle='#2e86c1';ctx.fillRect(0,G+50,W,H-G-50)}}
+function drawObs(o){const x=o.x;
+if(o.k=='rock'){ctx.fillStyle='#7b8794';ctx.beginPath();ctx.moveTo(x,G);ctx.lineTo(x+6,G-24);ctx.lineTo(x+20,G-38);ctx.lineTo(x+36,G-32);ctx.lineTo(x+46,G-8);ctx.lineTo(x+46,G);ctx.fill();ctx.fillStyle='#a5b0bb';ctx.beginPath();ctx.moveTo(x+10,G-24);ctx.lineTo(x+20,G-34);ctx.lineTo(x+28,G-26);ctx.fill()}
+else if(o.k=='log'){ctx.fillStyle='#8b5a2b';rr(x,G-30,o.w,30,10);ctx.fillStyle='#c68642';ctx.beginPath();ctx.ellipse(x+8,G-15,8,15,0,0,7);ctx.fill();ctx.fillStyle='#6b4423';ctx.fillRect(x+24,G-24,20,3)}
+else if(o.k=='pit'){ctx.fillStyle='#120a06';ctx.fillRect(x,G,o.w,H-G);ctx.fillStyle='#ff9f1c';ctx.fillRect(x-4,G,4,14);ctx.fillRect(x+o.w,G,4,14)}
+else{ctx.fillStyle='#8a6d3b';ctx.fillRect(x+10,0,4,G-110);ctx.fillRect(x+o.w-14,0,4,G-110);ctx.fillStyle='#8b5a2b';rr(x,G-110,o.w,38,12);ctx.fillStyle='#2f9e44';ctx.beginPath();ctx.arc(x+8,G-72,10,0,7);ctx.arc(x+o.w-8,G-72,10,0,7);ctx.fill();
+ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText('▼ TUNDUK',x+o.w/2,G-87)}}
+function gate(g,n){ctx.fillStyle='#8b5a2b';ctx.fillRect(g.x-45,G-175,14,175);ctx.fillRect(g.x+31,G-175,14,175);rr(g.x-55,G-190,110,34,8);ctx.fillStyle='#ffe9a8';ctx.font='bold 20px Fredoka,sans-serif';ctx.textAlign='center';ctx.fillText('SOAL '+n,g.x,G-166)}
+function finish(f){const x=f.x;for(let i=0;i<10;i++){ctx.fillStyle=i%2?'#fff':'#222';ctx.fillRect(x,G-160+i*16,12,16)}
+ctx.fillStyle='#e63946';rr(x-70,G-200,140,36,8);ctx.fillStyle='#fff';ctx.font='bold 24px Fredoka,sans-serif';ctx.textAlign='center';ctx.fillText('FINIS',x,G-174);
+const c=x+260;ctx.fillStyle='#8b5a2b';rr(c,G-36,62,36,6);ctx.fillStyle='#a56a35';rr(c-2,G-52,66,20,10);ctx.fillStyle='#ffd24a';rr(c+26,G-38,10,14,3);ctx.fillRect(c,G-30,62,4)}
+function limb(a,b,w,c){ctx.strokeStyle=c;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke()}
+function hero(x,gy,ph,md,hurt){
+const duck=md=='duck',air=md=='air'||md=='win',idle=md=='idle',L=duck?15:22,pf=air?1.1:ph,pb=pf+Math.PI;
+const lp=(p,front)=>{let a,b;if(idle){a=front?.12:-.12;b=a}else if(duck){a=Math.sin(p)*.4+.8;b=a-1.7}else{a=Math.sin(p)*.85;b=a-Math.max(0,Math.cos(p))*1.15-.1}
+const k=[L*Math.sin(a),L*Math.cos(a)];return{k,f:[k[0]+L*Math.sin(b),k[1]+L*Math.cos(b)]}};
+const lf=lp(pf,1),lb=lp(pb,0),hy=gy-Math.max(lf.f[1],lb.f[1])-4;
+const drawLeg=(l,c)=>{limb([x,hy],[x+l.k[0],hy+l.k[1]],11,c);limb([x+l.k[0],hy+l.k[1]],[x+l.f[0],hy+l.f[1]],10,c);ctx.fillStyle=c=='#3b5b8c'?'#7a4a28':'#5a3a22';ctx.beginPath();ctx.ellipse(x+l.f[0]+4,hy+l.f[1]+2,9,5,0,0,7);ctx.fill()};
+const sx=x+(duck?11:2),sy=hy-(duck?24:32);
+const drawArm=(p,c,sk)=>{let a,b;if(md=='win'){a=-2.7;b=-2.9}else{a=-Math.sin(p)*.9;b=a+.9+Math.max(0,Math.sin(p))*.3}
+const e=[sx+17*Math.sin(a),sy+17*Math.cos(a)],h=[e[0]+15*Math.sin(b),e[1]+15*Math.cos(b)];limb([sx,sy],e,8,c);limb(e,h,7,sk);ctx.fillStyle=sk;ctx.beginPath();ctx.arc(h[0],h[1],4.5,0,7);ctx.fill()};
+ctx.save();if(hurt>0&&((hurt/4)|0)%2)ctx.globalAlpha=.45;
+drawLeg(lb,'#2c4468');drawArm(pb,'#b86a1e','#d9a67f');
+ctx.fillStyle='#2f7d4f';rr(sx-15,sy+1,12,20,4);
+limb([x,hy],[sx,sy],19,'#e08a2e');limb([x,hy-3],[sx,sy+2],8,'#2f7d4f');limb([x-4,hy],[x+4,hy],4,'#5a3a22');
+const hx=sx+2,hyy=sy-16;
+ctx.fillStyle='#f4c29b';ctx.beginPath();ctx.arc(hx,hyy,13.5,0,7);ctx.fill();
+ctx.fillStyle='#4a2c17';ctx.beginPath();ctx.arc(hx-4,hyy-2,11,Math.PI*.6,Math.PI*1.5);ctx.fill();
+ctx.fillStyle='#c8a24a';ctx.beginPath();ctx.ellipse(hx+1,hyy-8,20,5,0,0,7);ctx.fill();ctx.fillStyle='#e0bd62';ctx.beginPath();ctx.arc(hx,hyy-9,11,Math.PI,0);ctx.fill();
+ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(hx+6,hyy,3.4,0,7);ctx.fill();ctx.fillStyle='#222';ctx.beginPath();ctx.arc(hx+7,hyy,1.7,0,7);ctx.fill();
+ctx.fillStyle='rgba(255,100,120,.45)';ctx.beginPath();ctx.arc(hx+4,hyy+5,3,0,7);ctx.fill();
+ctx.strokeStyle='#8a3b2b';ctx.lineWidth=1.8;ctx.beginPath();if(hurt>0)ctx.arc(hx+7,hyy+7,2.5,0,7);else ctx.arc(hx+6,hyy+4,4,.15,Math.PI*.8);ctx.stroke();
+drawLeg(lf,'#3b5b8c');drawArm(pf,'#e08a2e','#f4c29b');ctx.restore()}
+function draw(){
+ctx.setTransform(2,0,0,2,0,0);ctx.save();if(sh>.3){ctx.translate((Math.random()-.5)*sh,(Math.random()-.5)*sh);sh*=.9}
+bg();if(st.gate)gate(st.gate,st.qi+1);st.obs.forEach(drawObs);if(st.fin)finish(st.fin);
+st.cn.forEach(c=>{ctx.save();ctx.translate(c.x,c.y);ctx.scale(Math.cos(st.t*.12+c.ph),1);ctx.fillStyle='#ffb000';ctx.beginPath();ctx.arc(0,0,10,0,7);ctx.fill();ctx.fillStyle='#ffd24a';ctx.beginPath();ctx.arc(0,0,6.5,0,7);ctx.fill();ctx.restore()});
+const md=S=='win'?'win':(S!='end'&&st.hy<-2)?'air':(st.duck>0&&st.hy==0)?'duck':(st.speed<.7&&S!='menu')?'idle':'run';
+if(S!='menu'||true)hero(st.hx,G+st.hy,st.ph,md,st.hurt);
+st.parts.forEach(p=>{ctx.globalAlpha=Math.min(1,p.l/30);ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,6,6)});ctx.globalAlpha=1;ctx.restore();
+$('#hs').textContent='⭐ '+st.score;$('#hp').textContent='Soal '+Math.min(st.qi+1,15)+'/15';$('#hc').textContent='🪙 '+st.coins;$('#hl').textContent='♥'.repeat(Math.max(0,st.lives))+'♡'.repeat(Math.max(0,3-st.lives));
+$('#pb').style.width=(S=='menu'?0:(st.qi+(S=='finish'||S=='win'||S=='end'&&st.ok+st.bad==15?0:0))/15*100)+'%';
+$('#ctl').classList.toggle('hide',S!='run')}
+function loop(now){const dt=Math.min(2.5,(now-last)/16.67||1);last=now;st.t+=dt;update(dt);draw();requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+/* ---------- Input: tombol, keyboard, sentuh ---------- */
+$('#bstart').onclick=startGame;$('#bcam').onclick=enableCam;
+[['bl','left'],['bj','up'],['bd','down'],['br','right']].forEach(([i,k])=>{$('#'+i).onclick=()=>act(k)});
+addEventListener('keydown',e=>{const k={ArrowUp:'up',' ':'up',w:'up',ArrowDown:'down',s:'down',ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right'}[e.key];
+if(S=='question'&&!st.ans&&'1234'.includes(e.key)){const b=document.querySelectorAll('.opt')[+e.key-1];b&&b.click()}
+else if(S=='question'&&st.ans&&(e.key=='Enter'||e.key==' '))next();
+else if(k){e.preventDefault();act(k)}});
+let t0;$('#g').addEventListener('touchstart',e=>{t0=e.touches[0]},{passive:true});
+$('#g').addEventListener('touchend',e=>{if(!t0||e.target.closest('button'))return;const t=e.changedTouches[0],dx=t.clientX-t0.clientX,dy=t.clientY-t0.clientY;
+if(Math.max(Math.abs(dx),Math.abs(dy))>30)act(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'))},{passive:true});
+/* ---------- Kamera & Hand Gesture (MediaPipe Hands, butuh internet) ---------- */
+let hands,vid=$('#vid'),pinchPrev=false,lastPinch=0,hist=[],lastGes=0,curX=0,curY=0,hov=null;
+const MP='https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/';
+function loadS(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.crossOrigin='anonymous';s.onload=ok;s.onerror=()=>no(new Error('lib'));document.head.appendChild(s)})}
+async function enableCam(){const msg=$('#cmsg');msg.textContent='Memuat kamera dan pustaka deteksi tangan…';
+try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('nocam');
+if(typeof Hands=='undefined')await loadS(MP+'hands.js');
+const stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'}});
+vid.srcObject=stream;await vid.play();
+hands=new Hands({locateFile:f=>MP+f});hands.setOptions({maxNumHands:1,modelComplexity:0,minDetectionConfidence:.6,minTrackingConfidence:.5});hands.onResults(onHand);
+vid.classList.remove('hide');msg.textContent='Kamera aktif ✓ Angkat satu tangan dan tunjuk dengan telunjuk.';
+(async function lp(){if(vid.readyState>=2){try{await hands.send({image:vid})}catch(e){}}requestAnimationFrame(lp)})()
+}catch(e){msg.textContent=e.message=='lib'?'Pustaka deteksi tangan gagal dimuat (perlu internet). Gunakan mouse, sentuh, atau keyboard.':'Kamera tidak dapat diaktifkan (izin ditolak atau tidak ada kamera). Gunakan mouse, sentuh, atau keyboard.'}}
+function onHand(r){const c=$('#cur');
+if(!r.multiHandLandmarks||!r.multiHandLandmarks[0]){c.classList.add('hide');hist=[];return}
+const l=r.multiHandLandmarks[0],ix=l[8],th=l[4],x=1-ix.x,y=ix.y,now=performance.now();
+curX+=(x*innerWidth-curX)*.5;curY+=(y*innerHeight-curY)*.5;c.style.left=curX+'px';c.style.top=curY+'px';c.classList.remove('hide');
+const pinch=Math.hypot(th.x-ix.x,th.y-ix.y)<.055;
+if(S=='menu'||S=='question'||S=='end'){hist=[];
+if(!pinch){const el=document.elementFromPoint(curX,curY),b=el&&el.closest('button');document.querySelectorAll('.hov').forEach(e=>e.classList.remove('hov'));if(b)b.classList.add('hov');hov=b}
+else if(!pinchPrev&&now-lastPinch>900&&hov){lastPinch=now;hov.click()}
+}else{document.querySelectorAll('.hov').forEach(e=>e.classList.remove('hov'));
+hist.push({t:now,x,y});while(hist[0]&&now-hist[0].t>300)hist.shift();
+const f=hist[0],dx=x-f.x,dy=y-f.y;
+if(now-lastGes>500){let k=dy<-.13?'up':dy>.13?'down':dx>.16?'right':dx<-.16?'left':null;if(k){act(k);lastGes=now;hist=[]}}}
+pinchPrev=pinch}
+</script></body></html>
